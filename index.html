@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="assets/favicon.svg">
+<title>SOCIAL BOT DETECTION MODEL</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="bg"></canvas>
+<nav><b>SBD Model</b><a href="#home">Home</a><a href="#detect">Detect</a><a href="#dash">Dashboard</a><a href="#history">History</a><a href="#how">How it works</a><a href="#about">About</a></nav>
+
+<section id="home">
+  <p class="tag">Final-year project · AI &amp; Data Science</p>
+  <h1>SOCIAL BOT DETECTION MODEL</h1>
+  <h3 style="color:var(--b)">AI-Powered Social Media Bot Detection</h3>
+  <p class="sub">Enter an account's profile, activity and network features. The model scores each one against known bot behaviour and explains which signals pushed it toward Bot or Human.</p>
+  <div><button class="btn" onclick="go('#detect')">Start Detection</button> <button class="btn ghost" onclick="go('#how')">How it works</button></div>
+</section>
+
+<section id="detect" class="reveal">
+  <h2>Detect an account</h2>
+  <p class="sub">Fill in the fields or load a sample account to test right away.</p>
+  <div class="card" style="margin-top:20px">
+  <form id="f">
+    <label>Username<input id="username" required value="sample_user" maxlength="30"></label>
+    <label>Followers<input id="followers" type="number" min="0" required></label>
+    <label>Following<input id="following" type="number" min="0" required></label>
+    <label>Total posts / tweets<input id="posts" type="number" min="0" required></label>
+    <label>Account age (days)<input id="age" type="number" min="1" required></label>
+    <label>Avg posts per day<input id="ppd" type="number" min="0" step="0.1" required></label>
+    <label>Retweet % (0–100)<input id="rt" type="number" min="0" max="100" required></label>
+    <label>Hashtags per post<input id="tags" type="number" min="0" step="0.1" required></label>
+    <label>Profile completeness % (0–100)<input id="prof" type="number" min="0" max="100" required></label>
+    <label>Engagement rate % (0–100)<input id="eng" type="number" min="0" max="100" step="0.1" required></label>
+    <label>Network / activity score (0–100)<input id="net" type="number" min="0" max="100" required></label>
+    <label>Bot threshold: <b id="thv">50</b>%<input id="th" type="range" min="20" max="80" value="50"></label>
+    <div class="row">
+      <button class="btn" type="submit">Detect Bot</button>
+      <button class="btn ghost" type="button" onclick="sample('bot')">Load sample bot</button>
+      <button class="btn ghost" type="button" onclick="sample('human')">Load sample human</button>
+    </div>
+  </form>
+  <p class="note">Demo prediction for a college project. It is not a definitive judgment about any real person or account.</p>
+  </div>
+</section>
+
+<section id="analysis">
+  <h2>Analysing account…</h2>
+  <canvas id="net-anim"></canvas>
+  <div id="pct">0%</div>
+  <div class="bar"><i id="prog"></i></div>
+  <p id="stepTxt"></p>
+</section>
+
+<section id="result">
+  <h2>Prediction result</h2>
+  <div class="card">
+    <div class="res">
+      <div class="ring">
+        <svg width="200" height="200" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="14"/><circle id="arc" cx="100" cy="100" r="86" fill="none" stroke="#f43f5e" stroke-width="14" stroke-linecap="round" stroke-dasharray="540.4" stroke-dashoffset="540.4" style="transition:stroke-dashoffset 1.4s ease"/></svg>
+        <div><span id="rp">0%</span><small>bot probability</small></div>
+      </div>
+      <div>
+        <span class="badge" id="rb"></span>
+        <p id="rrisk" class="sub" style="margin:0 0 10px"></p>
+        <div class="pb"><span>Bot probability <b id="bp"></b></span><div class="bar"><i id="bbar" style="background:var(--bot)"></i></div></div>
+        <div class="pb"><span>Human probability <b id="hp"></b></span><div class="bar"><i id="hbar" style="background:var(--hum)"></i></div></div>
+        <p class="note" id="rsum"></p>
+      </div>
+    </div>
+  </div>
+  <h2 style="margin-top:36px">Why the model decided this</h2>
+  <p class="sub">Each bar shows how many points a feature added toward "bot" out of its maximum weight.</p>
+  <div class="card" id="factors"></div>
+</section>
+
+<section id="dash" class="reveal">
+  <h2>Dashboard</h2>
+  <div class="grid">
+    <div class="card stat"><b id="s1">0</b><span>Accounts analysed</span></div>
+    <div class="card stat"><b id="s2">0</b><span>Bots detected</span></div>
+    <div class="card stat"><b id="s3">0</b><span>Human accounts</span></div>
+    <div class="card stat"><b id="s4">0%</b><span>Average bot probability</span></div>
+  </div>
+  <div class="charts">
+    <div class="card"><canvas id="c1"></canvas></div>
+    <div class="card"><canvas id="c2"></canvas></div>
+    <div class="card"><canvas id="c3"></canvas></div>
+  </div>
+</section>
+
+<section id="history" class="reveal">
+  <h2>Detection history</h2>
+  <div class="row" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+    <input id="q" placeholder="Search username…" style="flex:1;min-width:180px" aria-label="Search history">
+    <select id="fl" style="background:rgba(0,0,0,.3);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px" aria-label="Filter"><option value="">All</option><option>Likely Bot</option><option>Likely Human</option></select>
+    <button class="btn ghost" onclick="demoHistory()">Add demo history</button>
+    <button class="btn ghost" onclick="clearHist()">Clear history</button>
+  </div>
+  <div class="card tw"><table><thead><tr><th>Username</th><th>Bot Probability</th><th>Prediction</th><th>Date</th></tr></thead><tbody id="tb"></tbody></table></div>
+</section>
+
+<section id="how" class="reveal">
+  <h2>How it works</h2>
+  <p class="sub">The model turns raw profile numbers into eight behaviour signals. Each signal is scaled to 0–1, multiplied by a fixed weight and summed to a score out of 100. A logistic (sigmoid) function then converts the score to a probability.</p>
+  <div class="grid" style="margin-top:20px;align-items:start">
+    <div class="flow">
+      <div>User Data</div><span></span><div>Feature Extraction</div><span></span><div>Data Preprocessing</div><span></span><div>Behaviour Analysis</div><span></span><div>AI / ML Model</div><span></span><div>Bot Probability</div><span></span><div>Human / Bot Classification</div><span></span><div>Explainable Result</div>
+    </div>
+    <div class="card"><h3>Feature weights</h3><ul class="ck" id="wl"></ul></div>
+  </div>
+</section>
+
+<section id="info" class="reveal">
+  <div class="grid">
+    <div class="card"><h3>Features</h3><ul class="ck"><li>Weighted, explainable scoring</li><li>Adjustable bot threshold</li><li>Live dashboard and charts</li><li>Local detection history</li></ul></div>
+    <div class="card"><h3>Applications</h3><ul class="ck"><li>Social platform moderation</li><li>Spam and fake-follower checks</li><li>Election misinformation research</li><li>Brand and influencer audits</li></ul></div>
+    <div class="card"><h3>Advantages</h3><ul class="ck"><li>Every result is explained</li><li>Fast, runs in the browser</li><li>No personal data leaves the device</li><li>Easy to tune and extend</li></ul></div>
+    <div class="card"><h3>Limitations</h3><ul class="ck"><li>Rules are hand-set, not trained on a large dataset</li><li>Human power users can look like bots</li><li>Bots evolve to look human</li><li>Uses numeric features only, not text</li></ul></div>
+  </div>
+</section>
+
+<section id="about" class="reveal">
+  <h2>About the project</h2>
+  <div class="grid">
+    <div class="card"><h3>Project</h3><p class="sub">Social Bot Detection Model: a B.Tech Artificial Intelligence and Data Science final-year project that shows how profile, activity and network features can separate automated accounts from people.</p></div>
+    <div class="card"><h3>Team</h3><ul class="ck"><li>Student: Your Name</li><li>Guide: Guide Name</li><li>Department: AI &amp; Data Science</li><li>College: Your College, Academic Year</li></ul></div>
+    <div class="card"><h3>Tech stack</h3><ul class="ck"><li>HTML, CSS, JavaScript</li><li>Chart.js for charts</li><li>localStorage for history</li></ul></div>
+  </div>
+</section>
+<footer>Social Bot Detection Model · demo only, not a judgment about real accounts</footer>
+
+<script src="js/detection.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/analysis.js"></script>
+<script src="js/result.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/background.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
